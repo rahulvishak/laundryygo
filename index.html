@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="description" content="Laundry Go hostel machine booking app">
+  <title>Laundry Go — Your laundry, your time</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --teal: #0f766e;
+      --teal-dark: #115e59;
+      --mint: #e5f4f0;
+      --paper: #f3f8f6;
+      --ink: #17233d;
+      --muted: #718096;
+      --line: #e6ece9;
+      --white: #fff;
+      --shadow: 0 14px 40px #193c3310;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 28px; }
+    .login-layout { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(340px, .82fr); gap: 24px; width: min(1050px, 100%); }
+    .hero { border-radius: 30px; padding: 32px; color: white; background: radial-gradient(circle at 75% 30%, #2ca79a 0, transparent 34%), linear-gradient(145deg, #0b625c, #123f48); min-height: 620px; overflow: hidden; position: relative; }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 19px; font-weight: 850; letter-spacing: -.3px; }
+    .brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; background: #ffffff28; font-size: 20px; }
+    .washer-stage { height: 290px; display: grid; place-items: center; position: relative; perspective: 700px; }
+    .orbit { position: absolute; width: 240px; height: 240px; border: 1px solid #ffffff25; border-radius: 50%; }
+    .orbit.inner { width: 200px; height: 200px; }
+    .bubble { position: absolute; border: 3px solid #ffffffa0; border-radius: 50%; background: #8ee9f2; animation: bob 1.8s ease-in-out infinite alternate; }
+    .bubble.one { width: 14px; height: 14px; top: 60px; right: 22%; }
+    .bubble.two { width: 10px; height: 10px; bottom: 56px; left: 22%; animation-delay: .6s; }
+    @keyframes bob { to { transform: translateY(-13px); } }
+    .washer-shadow { position: absolute; width: 185px; height: 18px; border-radius: 50%; background: #031f2c65; bottom: 28px; filter: blur(7px); }
+    .washer { width: 150px; height: 190px; position: relative; margin-top: 20px; transform: rotateY(-9deg) rotateX(2deg); filter: drop-shadow(12px 14px 13px #001c2440); }
+    .washer-top { height: 35px; border-radius: 15px 13px 0 0; background: linear-gradient(160deg, #fff, #d6e0e9); display: flex; align-items: center; gap: 9px; padding: 0 12px; }
+    .dial { width: 17px; height: 17px; border: 4px solid #93a6b0; border-radius: 50%; background: #d7e2e8; }
+    .display { width: 48px; height: 14px; border-radius: 4px; background: #133a45; display: flex; align-items: center; padding: 4px; }
+    .display i { width: 5px; height: 5px; border-radius: 50%; background: #61e3ba; box-shadow: 0 0 8px #61e3ba; }
+    .washer-side { position: absolute; z-index: -1; top: 8px; bottom: 4px; right: -14px; width: 16px; border-radius: 0 12px 10px 0; background: #a7c7c3; transform: skewY(-5deg); }
+    .washer-body { height: 155px; padding: 0 12px; border-radius: 0 0 13px 13px; background: linear-gradient(115deg, #fff, #edf2f5 75%, #d7e1e6); }
+    .washer-brand { height: 25px; display: flex; align-items: center; gap: 5px; color: #647783; font-size: 7px; font-weight: 900; letter-spacing: 1px; }
+    .washer-light { margin-left: auto; width: 6px; height: 6px; border-radius: 50%; background: #22c99a; box-shadow: 0 0 7px #22c99a; }
+    .door { width: 112px; height: 112px; margin: 0 auto; border: 5px solid #e8eef2; border-radius: 50%; background: linear-gradient(145deg, #d5e0e6, #a5b6c1); display: grid; place-items: center; box-shadow: 3px 4px 8px #59707955; }
+    .glass { width: 92px; height: 92px; overflow: hidden; border: 3px solid #91a5b2; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #2d7280, #122e49 75%); position: relative; display: grid; place-items: center; }
+    .drum { width: 65px; height: 65px; border: 1px solid #b2f6ec; border-radius: 50%; background: radial-gradient(circle, #257c83, #17546e); position: relative; animation: spin 3.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .fin { position: absolute; width: 9px; height: 25px; border-radius: 9px; background: #8ee9df; left: 27px; top: 4px; }
+    .fin.r { transform: rotate(90deg); top: 20px; left: 43px; }
+    .fin.b { transform: rotate(180deg); top: 34px; }
+    .fin.l { transform: rotate(270deg); top: 20px; left: 11px; }
+    .hub { position: absolute; width: 18px; height: 18px; left: 22px; top: 22px; border: 4px solid #62afbb; border-radius: 50%; background: #d7ffff; }
+    .water { position: absolute; width: 55px; height: 8px; bottom: 8px; left: 16px; border-radius: 50%; background: #6de0d987; }
+    .hero-copy { max-width: 430px; position: relative; }
+    .eyebrow { color: #9ce1d4; font-size: 10px; font-weight: 850; letter-spacing: 2px; }
+    .hero h1 { margin: 9px 0; font-size: clamp(29px, 4vw, 40px); line-height: 1.08; letter-spacing: -1.2px; }
+    .hero p { color: #d3eae6; line-height: 1.6; font-size: 14px; }
+    .hero-note { display: flex; align-items: center; gap: 9px; margin-top: 11px; font-size: 13px; color: #f1fffb; }
+    .hero-note b { width: 19px; height: 19px; border-radius: 50%; display: grid; place-items: center; color: #0c625b; background: #d9fff4; }
+    .login-card { background: white; border: 1px solid #e9efec; border-radius: 30px; padding: clamp(24px, 4vw, 42px); box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: center; }
+    .login-card h2 { font-size: 30px; margin: 8px 0; letter-spacing: -1px; }
+    .muted { color: var(--muted); line-height: 1.55; }
+    .field { display: grid; gap: 8px; margin-top: 19px; }
+    .field label { color: #34445a; font-size: 12px; font-weight: 750; }
+    .field input { width: 100%; height: 50px; border: 1px solid #e2e9e7; border-radius: 13px; padding: 0 14px; outline: none; background: #fbfdfc; color: var(--ink); }
+    .field input:focus { border-color: #69b4a8; box-shadow: 0 0 0 3px #dff3ee; }
+    .photo-row { display: flex; align-items: center; gap: 14px; margin: 20px 0 3px; }
+    .photo-preview { width: 58px; height: 58px; border: 2px solid #c8e7df; border-radius: 50%; background: var(--mint); overflow: hidden; display: grid; place-items: center; color: var(--teal); font-size: 20px; }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-button { color: var(--teal); background: transparent; padding: 0; border: 0; font-size: 12px; font-weight: 750; }
+    .primary { border: 0; border-radius: 13px; height: 49px; padding: 0 17px; background: var(--teal); color: white; font-weight: 800; box-shadow: 0 6px 15px #0f766e30; }
+    .primary:hover { background: var(--teal-dark); }
+    .login-submit { width: 100%; margin-top: 24px; }
+    .form-error { min-height: 18px; margin-top: 7px; color: #b54343; font-size: 12px; }
+    .local-note { border-radius: 12px; background: #eff8f5; color: #55736c; padding: 11px 12px; margin-top: 18px; font-size: 11px; line-height: 1.5; }
+    .app-shell { min-height: 100vh; }
+    .topbar { height: 72px; background: white; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 max(22px, calc((100% - 1180px)/2)); position: sticky; top: 0; z-index: 5; }
+    .topbar .brand { color: var(--ink); }
+    .topbar .brand-mark { background: var(--mint); color: var(--teal); }
+    .nav { display: flex; align-items: center; gap: 7px; }
+    .nav button { border: 0; color: #667587; background: transparent; border-radius: 10px; padding: 9px 11px; font-size: 12px; font-weight: 750; }
+    .nav button.active, .nav button:hover { color: var(--teal); background: var(--mint); }
+    .user-chip { display: flex; align-items: center; gap: 10px; background: transparent; border: 0; color: var(--ink); font-size: 12px; font-weight: 750; }
+    .user-photo { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: var(--mint); display: grid; place-items: center; color: var(--teal); }
+    .main { width: min(1180px, 100%); margin: auto; padding: 30px 22px 65px; }
+    .page-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+    .page-head h1 { margin: 0; font-size: clamp(25px, 3vw, 34px); letter-spacing: -1px; }
+    .page-head p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+    .section-title { font-size: 18px; margin: 27px 0 13px; letter-spacing: -.4px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin: 18px 0; }
+    .stat, .card { background: white; border: 1px solid var(--line); border-radius: 17px; padding: 17px; box-shadow: 0 5px 18px #193c3306; }
+    .stat strong { font-size: 26px; display: block; }
+    .stat span { color: var(--muted); font-size: 11px; display: block; margin-top: 5px; }
+    .next-card { color: white; background: linear-gradient(110deg, #0f766e, #149488); border-radius: 20px; padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .next-card small { color: #c9f3ea; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; font-weight: 800; }
+    .next-card h3 { margin: 7px 0; font-size: 18px; }
+    .next-card p { margin: 0; color: #d7f0eb; font-size: 12px; }
+    .next-card .primary { background: white; color: var(--teal); box-shadow: none; flex: 0 0 auto; }
+    .machine-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+    .machine-card { background: white; border: 1px solid var(--line); border-radius: 17px; padding: 16px; }
+    .machine-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .machine-top h3 { font-size: 15px; margin: 0; }
+    .machine-meta, .machine-slot { color: var(--muted); font-size: 11px; margin-top: 8px; }
+    .machine-slot { color: #536675; }
+    .badge { display: inline-flex; align-items: center; border-radius: 99px; padding: 5px 9px; font-size: 9px; font-weight: 850; text-transform: uppercase; white-space: nowrap; }
+    .badge.available { color: #147253; background: #def6e9; }
+    .badge.booked { color: #936312; background: #fff1ca; }
+    .badge.maintenance { color: #a43e3e; background: #ffe4e1; }
+    .badge.upcoming { color: #0f766e; background: #ccfbf1; }
+    .badge.completed { color: #147253; background: #def6e9; }
+    .badge.cancelled { color: #936312; background: #fff1ca; }
+    .machine-card .primary { width: 100%; height: 39px; margin-top: 14px; font-size: 11px; }
+    .primary:disabled { background: #b8c5c1; box-shadow: none; cursor: not-allowed; }
+    .booking-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 17px; align-items: start; }
+    .card h2, .card h3 { margin: 0 0 14px; }
+    .select-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choice { background: #f5faf8; border: 1px solid #e2ece8; border-radius: 11px; color: #526371; padding: 10px 12px; font-size: 11px; font-weight: 750; }
+    .choice.selected { background: #ccfbf1; color: var(--teal-dark); border-color: #76c3b4; }
+    .choice.disabled { opacity: .43; cursor: not-allowed; }
+    .date-field { margin: 16px 0 0; }
+    .date-field input { border: 1px solid #e2e9e7; border-radius: 11px; height: 42px; padding: 0 12px; color: var(--ink); }
+    .slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .slot { background: #f5faf8; border: 1px solid #e2ece8; border-radius: 11px; padding: 11px 8px; color: #425363; font-size: 10px; font-weight: 750; }
+    .slot.selected { background: #ccfbf1; border-color: #76c3b4; color: var(--teal-dark); }
+    .slot:disabled { color: #abb5b1; background: #f2f4f3; cursor: not-allowed; text-decoration: line-through; }
+    .summary-line { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #edf1ef; font-size: 12px; }
+    .summary-line span:first-child { color: var(--muted); }
+    .summary-line strong { text-align: right; }
+    .summary-total { font-size: 15px; }
+    .full-button { width: 100%; margin-top: 16px; }
+    .info { color: #55736c; background: #eff8f5; border-radius: 11px; padding: 11px; font-size: 10px; line-height: 1.5; margin-top: 12px; }
+    .list { display: grid; gap: 11px; }
+    .list-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+    .list-card h3 { font-size: 14px; margin: 0 0 5px; }
+    .list-card p { color: var(--muted); font-size: 11px; margin: 0; }
+    .list-card .right { display: flex; align-items: center; gap: 12px; }
+    .small-button { border: 1px solid #dfe8e4; border-radius: 9px; padding: 8px 11px; background: white; color: #536675; font-size: 10px; font-weight: 750; }
+    .small-button.danger { color: #a43e3e; border-color: #f0d7d4; }
+    .empty { color: var(--muted); text-align: center; padding: 38px; background: white; border: 1px dashed #dbe5e1; border-radius: 16px; }
+    .profile-card { display: flex; align-items: center; gap: 17px; }
+    .profile-card .user-photo { width: 78px; height: 78px; font-size: 27px; }
+    .profile-card h2 { margin: 0 0 6px; }
+    .admin-banner { background: #fff5df; border: 1px solid #f1dfb8; color: #795b1e; border-radius: 13px; padding: 13px 15px; font-size: 11px; line-height: 1.5; margin-bottom: 16px; }
+    .admin-machine-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; border-top: 1px solid #edf1ef; padding: 12px 0; }
+    .admin-machine-row select { border: 1px solid #e2e9e7; border-radius: 9px; padding: 8px; color: var(--ink); background: white; }
+    .toast { position: fixed; z-index: 10; bottom: 22px; left: 50%; transform: translateX(-50%); background: #173d39; color: white; padding: 12px 18px; border-radius: 12px; box-shadow: var(--shadow); font-size: 12px; }
+    @media (max-width: 800px) {
+      .login-layout { grid-template-columns: 1fr; max-width: 530px; }
+      .hero { min-height: auto; padding: 24px; }
+      .washer-stage { height: 235px; }
+      .login-card { padding: 26px; }
+      .topbar { height: auto; min-height: 66px; padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+      .nav { width: 100%; overflow-x: auto; order: 3; }
+      .nav button { flex: 0 0 auto; }
+      .machine-grid { grid-template-columns: repeat(2, 1fr); }
+      .booking-layout { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .main { padding: 23px 15px 55px; }
+    }
+    @media (max-width: 450px) {
+      .login-wrap { padding: 13px; }
+      .hero { border-radius: 22px; padding: 21px; }
+      .machine-grid { grid-template-columns: 1fr; }
+      .next-card { align-items: flex-start; flex-direction: column; }
+      .page-head { align-items: flex-start; flex-direction: column; }
+      .user-chip span { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script>
+    (() => {
+      "use strict";
+      const APP_KEY = "laundry-go-single-file-v1";
+      const slots = [
+        ["06:00","07:00"],["07:00","08:00"],["08:00","09:00"],["09:00","10:00"],
+        ["10:00","11:00"],["11:00","12:00"],["12:00","13:00"],["13:00","14:00"],
+        ["14:00","15:00"],["15:00","16:00"],["16:00","17:00"],["17:00","18:00"]
+      ];
+      const freshState = () => ({
+        profile: null,
+        machines: Array.from({length:6}, (_, i) => ({
+          id: i + 1,
+          name: `Machine ${String(i + 1).padStart(2, "0")}`,
+          bay: `Bay ${String.fromCharCode(65 + i)}`,
+          status: i === 2 ? "Maintenance" : "Available"
+        })),
+        bookings: [],
+        view: "home",
+        filter: "All",
+        selectedMachine: 1,
+        selectedDate: localDate(0),
+        selectedSlot: ""
+      });
+      let state = loadState();
+      let toastTimer;
+
+      function localDate(offset) {
+        const date = new Date();
+        date.setDate(date.getDate() + offset);
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(APP_KEY) || "null");
+          if (!saved) return freshState();
+          const initial = freshState();
+          return {
+            ...initial, ...saved,
+            profile: saved.profile || null,
+            machines: Array.isArray(saved.machines) && saved.machines.length === 6 ? saved.machines : initial.machines,
+            bookings: Array.isArray(saved.bookings) ? saved.bookings : []
+          };
+        } catch {
+          return freshState();
+        }
+      }
+
+      function save() {
+        try {
+          localStorage.setItem(APP_KEY, JSON.stringify(state));
+          return true;
+        } catch {
+          notify("Could not save. This browser may be out of storage space.");
+          return false;
+        }
+      }
+
+      function esc(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+          "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+        })[char]);
+      }
+
+      function displayTime(time) {
+        const [h, m] = time.split(":").map(Number);
+        return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+      }
+
+      function slotLabel(slot) {
+        return `${displayTime(slot[0])} – ${displayTime(slot[1])}`;
+      }
+
+      function money(amount) {
+        return new Intl.NumberFormat("en-IN", {style:"currency", currency:"INR", maximumFractionDigits:0}).format(amount);
+      }
+
+      function notify(message) {
+        const el = document.getElementById("toast");
+        el.textContent = message;
+        el.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.add("hidden"), 2600);
+      }
+
+      function machine(id) {
+        return state.machines.find(item => item.id === Number(id));
+      }
+
+      function initials(name) {
+        return String(name || "LG").split(/\s+/).slice(0,2).map(part => part[0] || "").join("").toUpperCase();
+      }
+
+      function photoMarkup(photo, name, className = "user-photo") {
+        return photo
+          ? `<img class="${className}" src="${esc(photo)}" alt="${esc(name)} profile photo">`
+          : `<div class="${className}" aria-label="Profile initials">${esc(initials(name))}</div>`;
+      }
+
+      function hasConflict(machineId, date, start, end) {
+        const startValue = Number(start.replace(":",""));
+        const endValue = Number(end.replace(":",""));
+        return state.bookings.some(item =>
+          item.machineId === Number(machineId) && item.date === date && item.status !== "Cancelled" &&
+          startValue < Number(item.end.replace(":","")) && Number(item.start.replace(":","")) < endValue
+        );
+      }
+
+      function renderLogin() {
+        document.getElementById("app").innerHTML = `
+          <main class="login-wrap">
+            <div class="login-layout">
+              <section class="hero">
+                <div class="brand"><div class="brand-mark">✦</div><span>Laundry Go</span></div>
+                <div class="washer-stage" aria-label="Animated 3D-style washing machine">
+                  <div class="orbit"></div><div class="orbit inner"></div><div class="bubble one"></div><div class="bubble two"></div><div class="washer-shadow"></div>
+                  <div class="washer">
+                    <div class="washer-side"></div>
+                    <div class="washer-top"><div class="dial"></div><div class="display"><i></i></div></div>
+                    <div class="washer-body">
+                      <div class="washer-brand"><span>✦</span> LAUNDRY GO <i class="washer-light"></i></div>
+                      <div class="door"><div class="glass"><div class="drum"><i class="fin"></i><i class="fin r"></i><i class="fin b"></i><i class="fin l"></i><i class="hub"></i></div><i class="water"></i></div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="hero-copy">
+                  <div class="eyebrow">YOUR LAUNDRY, YOUR TIME</div>
+                  <h1>Your wash day, made easy.</h1>
+                  <p>Find an open machine, reserve your time, and skip the queue.</p>
+                  <div class="hero-note"><b>✓</b> Machine availability at a glance</div>
+                  <div class="hero-note"><b>✓</b> Book a slot in seconds</div>
+                </div>
+              </section>
+              <section class="login-card">
+                <div class="eyebrow">STUDENT PORTAL</div>
+                <h2>Let’s get started</h2>
+                <p class="muted">Enter your name and room number to continue.</p>
+                <div class="photo-row">
+                  <div id="login-photo" class="photo-preview">${state.profile?.photo ? `<img src="${esc(state.profile.photo)}" alt="Profile preview">` : "☺"}</div>
+                  <div><button class="photo-button" data-action="pick-login-photo">Add a profile photo</button><div class="muted" style="font-size:11px;margin-top:5px">Optional — you can skip this</div></div>
+                  <input id="login-photo-file" class="hidden" type="file" accept="image/*">
+                </div>
+                <form id="login-form">
+                  <div class="field"><label for="student-name">Your name</label><input id="student-name" name="name" autocomplete="name" required minlength="2" maxlength="60" placeholder="Enter your name" value="${esc(state.profile?.name || "")}"></div>
+                  <div class="field"><label for="room-number">Room number</label><input id="room-number" name="room" required maxlength="12" pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*" placeholder="e.g. B-214" value="${esc(state.profile?.room || "")}"></div>
+                  <div id="login-error" class="form-error" aria-live="polite"></div>
+                  <button class="primary login-submit" type="submit">Continue <span aria-hidden="true">→</span></button>
+                </form>
+                <div class="local-note">This single-file version saves your profile and bookings in this browser only. It does not use a shared server or real authentication.</div>
+              </section>
+            </div>
+          </main>`;
+        bindLogin();
+      }
+
+      function bindLogin() {
+        document.getElementById("login-form").addEventListener("submit", event => {
+          event.preventDefault();
+          const form = new FormData(event.currentTarget);
+          const name = String(form.get("name") || "").trim();
+          const room = String(form.get("room") || "").trim();
+          if (name.length < 2 || !/^[\p{L}\p{N}-]{1,12}$/u.test(room)) {
+            document.getElementById("login-error").textContent = "Enter a valid name and room number.";
+            return;
+          }
+          state.profile = {name, room, photo: state.profile?.photo || ""};
+          state.view = "home";
+          save();
+          render();
+        });
+        document.querySelector('[data-action="pick-login-photo"]').addEventListener("click", () => document.getElementById("login-photo-file").click());
+        document.getElementById("login-photo-file").addEventListener("change", async event => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          if (!file.type.startsWith("image/") || file.size > 2_500_000) {
+            document.getElementById("login-error").textContent = "Choose an image smaller than 2.5 MB.";
+            return;
+          }
+          state.profile = {...(state.profile || {name:"", room:""}), photo: await readPhoto(file)};
+          document.getElementById("login-photo").innerHTML = `<img src="${esc(state.profile.photo)}" alt="Profile preview">`;
+        });
+      }
+
+      function readPhoto(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Could not read the selected photo."));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function render() {
+        if (!state.profile) return renderLogin();
+        const views = {home: renderHome, booking: renderBooking, history: renderHistory, transactions: renderTransactions, profile: renderProfile, admin: renderAdmin};
+        const view = views[state.view] || renderHome;
+        document.getElementById("app").innerHTML = `
+          <div class="app-shell">
+            <header class="topbar">
+              <div class="brand"><div class="brand-mark">✦</div><span>Laundry Go</span></div>
+              <nav class="nav" aria-label="Main navigation">
+                ${[["home","Home"],["booking","Book a slot"],["history","My bookings"],["transactions","Payments"],["profile","Profile"],["admin","Admin demo"]].map(([key,label]) => `<button data-view="${key}" class="${state.view===key?"active":""}">${label}</button>`).join("")}
+              </nav>
+              <button class="user-chip" data-view="profile">${photoMarkup(state.profile.photo,state.profile.name)}<span>${esc(state.profile.name)}</span></button>
+            </header>
+            <main class="main">${view()}</main>
+          </div>`;
+        document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => {
+          state.view = button.dataset.view;
+          render();
+        }));
+        bindPage();
+      }
+
+      function renderHome() {
+        const today = new Date().toLocaleDateString("en-IN", {weekday:"long", day:"numeric", month:"long"});
+        const upcoming = state.bookings.filter(item => item.status === "Upcoming").sort((a,b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`));
+        const available = state.machines.filter(item => item.status === "Available").length;
+        const next = upcoming[0];
+        return `
+          <div class="page-head"><div><div class="eyebrow">${esc(today)}</div><h1>Hi, ${esc(state.profile.name.split(/\s+/)[0])} 👋</h1><p>Room ${esc(state.profile.room)} · Here’s your laundry overview.</p></div><button class="primary" data-view="booking">＋ Book a machine</button></div>
+          <div class="stats">
+            <div class="stat"><strong>06</strong><span>Total machines</span></div>
+            <div class="stat"><strong>${available}</strong><span>Available now</span></div>
+            <div class="stat"><strong>${state.machines.filter(item=>item.status==="Booked").length}</strong><span>In use</span></div>
+            <div class="stat"><strong>${upcoming.length}</strong><span>Your upcoming bookings</span></div>
+          </div>
+          <div class="next-card"><div><small>Next reservation</small><h3>${next ? `${esc(machine(next.machineId)?.name || "Machine")} · ${esc(next.date)}` : "Nothing booked yet"}</h3><p>${next ? `${slotLabel([next.start,next.end])} · ${money(next.amount)}` : "Choose a free machine and a time that works for you."}</p></div><button class="primary" data-view="${next ? "history" : "booking"}">${next ? "View booking" : "Find a slot"} →</button></div>
+          <h2 class="section-title">Machine availability</h2>
+          <div class="machine-grid">${state.machines.map(item => `<article class="machine-card"><div class="machine-top"><h3>${esc(item.name)}</h3><span class="badge ${item.status.toLowerCase()}">${esc(item.status)}</span></div><div class="machine-meta">${esc(item.bay)}</div><div class="machine-slot">${item.status==="Maintenance"?"Temporarily unavailable":"Choose a date to view open slots"}</div><button class="primary" data-book-machine="${item.id}" ${item.status==="Maintenance"?"disabled":""}>${item.status==="Maintenance"?"Unavailable":"Book this machine"} →</button></article>`).join("")}</div>`;
+      }
+
+      function renderBooking() {
+        const selected = machine(state.selectedMachine);
+        const slot = slots.find(item => `${item[0]}-${item[1]}` === state.selectedSlot);
+        return `
+          <div class="page-head"><div><h1>Book a laundry slot</h1><p>Select a machine, date, and one-hour time slot.</p></div></div>
+          <div class="booking-layout">
+            <div>
+              <section class="card"><h2>1. Choose a machine</h2><div class="select-row">${state.machines.map(item => `<button class="choice ${state.selectedMachine===item.id?"selected":""} ${item.status==="Maintenance"?"disabled":""}" data-select-machine="${item.id}" ${item.status==="Maintenance"?"disabled":""}>${esc(item.name)} · ${esc(item.status)}</button>`).join("")}</div>
+                <div class="field date-field"><label for="booking-date">2. Choose date</label><input id="booking-date" type="date" min="${localDate(0)}" max="${localDate(30)}" value="${esc(state.selectedDate)}"></div>
+              </section>
+              <section class="card" style="margin-top:14px"><h2>3. Choose a time</h2><div class="slots">${slots.map(item => {
+                const key = `${item[0]}-${item[1]}`;
+                const past = state.selectedDate === localDate(0) && item[0] <= `${String(new Date().getHours()).padStart(2,"0")}:${String(new Date().getMinutes()).padStart(2,"0")}`;
+                const unavailable = past || hasConflict(state.selectedMachine,state.selectedDate,item[0],item[1]);
+                return `<button class="slot ${state.selectedSlot===key?"selected":""}" data-select-slot="${key}" ${unavailable?"disabled":""}>${slotLabel(item)}${unavailable?" · unavailable":""}</button>`;
+              }).join("")}</div></section>
+            </div>
+            <aside class="card"><h2>Booking summary</h2><div class="summary-line"><span>Student</span><strong>${esc(state.profile.name)} · Room ${esc(state.profile.room)}</strong></div><div class="summary-line"><span>Machine</span><strong>${esc(selected?.name || "Select a machine")}</strong></div><div class="summary-line"><span>Date</span><strong>${esc(state.selectedDate)}</strong></div><div class="summary-line"><span>Time</span><strong>${slot?slotLabel(slot):"Select a time"}</strong></div><div class="summary-line"><span>Duration</span><strong>1 hour</strong></div><div class="summary-line summary-total"><span>Amount</span><strong>${money(149)}</strong></div><button class="primary full-button" data-action="confirm-booking" ${!slot||selected?.status==="Maintenance"?"disabled":""}>Confirm booking</button><div class="info">Demo booking only. No payment is collected. Booking data is saved in this browser.</div></aside>
+          </div>`;
+      }
+
+      function renderHistory() {
+        const list = [...state.bookings].filter(item => state.filter==="All" || item.status===state.filter).sort((a,b) => `${b.date}${b.start}`.localeCompare(`${a.date}${a.start}`));
+        return `<div class="page-head"><div><h1>My bookings</h1><p>Review or cancel reservations saved in this browser.</p></div><button class="primary" data-view="booking">＋ New booking</button></div>
+          <div class="select-row" style="margin-bottom:15px">${["All","Upcoming","Completed","Cancelled"].map(filter => `<button class="choice ${state.filter===filter?"selected":""}" data-filter="${filter}">${filter}</button>`).join("")}</div>
+          <div class="list">${list.length ? list.map(item => `<article class="card list-card"><div><h3>${esc(item.id)} · ${esc(machine(item.machineId)?.name || "Machine")}</h3><p>${esc(item.date)} · ${slotLabel([item.start,item.end])} · ${money(item.amount)}</p></div><div class="right"><span class="badge ${item.status.toLowerCase()}">${esc(item.status)}</span>${item.status==="Upcoming"?`<button class="small-button danger" data-cancel="${esc(item.id)}">Cancel</button>`:""}</div></article>`).join("") : `<div class="empty">No bookings match this filter.</div>`}</div>`;
+      }
+
+      function renderTransactions() {
+        const rows = [...state.bookings].sort((a,b) => `${b.date}${b.start}`.localeCompare(`${a.date}${a.start}`));
+        return `<div class="page-head"><div><h1>Payments</h1><p>Transparent booking charges. No payment gateway is connected.</p></div></div>
+          <div class="info" style="margin:0 0 15px">This is a demo app: amounts are estimates only. Payment status stays “Not paid” until a real payment provider is integrated.</div>
+          <div class="list">${rows.length ? rows.map(item=>`<article class="card list-card"><div><h3>Booking ${esc(item.id)}</h3><p>${esc(item.date)} · ${esc(machine(item.machineId)?.name || "Machine")} · Payment method: Not selected</p></div><div class="right"><strong>${money(item.amount)}</strong><span class="badge ${item.status==="Cancelled"?"cancelled":"upcoming"}">${item.status==="Cancelled"?"Refund not processed":"Not paid"}</span></div></article>`).join("") : `<div class="empty">No transaction records yet.</div>`}</div>`;
+      }
+
+      function renderProfile() {
+        return `<div class="page-head"><div><h1>Your profile</h1><p>Profile details are stored on this device.</p></div></div>
+          <section class="card profile-card">${photoMarkup(state.profile.photo,state.profile.name)}<div><h2>${esc(state.profile.name)}</h2><div class="muted">Room ${esc(state.profile.room)}</div></div></section>
+          <section class="card" style="margin-top:15px"><h2>Edit profile</h2><form id="profile-form"><div class="field"><label for="edit-name">Your name</label><input id="edit-name" required minlength="2" maxlength="60" value="${esc(state.profile.name)}"></div><div class="field"><label for="edit-room">Room number</label><input id="edit-room" required maxlength="12" pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*" value="${esc(state.profile.room)}"></div><div class="photo-row"><div class="photo-preview">${state.profile.photo?`<img src="${esc(state.profile.photo)}" alt="Profile photo">`:"☺"}</div><button type="button" class="photo-button" data-action="pick-profile-photo">Change profile photo</button><input id="profile-photo-file" class="hidden" type="file" accept="image/*"></div><div class="form-error" id="profile-error"></div><button class="primary" type="submit">Save profile</button></form></section>
+          <button class="small-button danger" style="margin-top:16px" data-action="logout">Log out</button>`;
+      }
+
+      function renderAdmin() {
+        return `<div class="page-head"><div><h1>Admin demo</h1><p>Local machine status controls.</p></div></div>
+          <div class="admin-banner"><strong>Demo only—not secure.</strong> This static single-file site has no admin login or backend. Changes affect only this browser. Never use these controls for real hostel operations.</div>
+          <section class="card"><h2>Machine status</h2>${state.machines.map(item=>`<div class="admin-machine-row"><div><strong>${esc(item.name)}</strong><div class="machine-meta">${esc(item.bay)}</div></div><select data-machine-status="${item.id}"><option ${item.status==="Available"?"selected":""}>Available</option><option ${item.status==="Booked"?"selected":""}>Booked</option><option ${item.status==="Maintenance"?"selected":""}>Maintenance</option></select></div>`).join("")}</section>
+          <h2 class="section-title">Recent bookings</h2><div class="list">${state.bookings.length?state.bookings.slice(0,8).map(item=>`<article class="card list-card"><div><h3>${esc(item.id)} · ${esc(item.name)}</h3><p>${esc(item.date)} · ${esc(machine(item.machineId)?.name||"Machine")} · Room ${esc(item.room)}</p></div><span class="badge ${item.status.toLowerCase()}">${esc(item.status)}</span></article>`).join(""):`<div class="empty">No bookings yet.</div>`}</div>`;
+      }
+
+      function bindPage() {
+        document.querySelectorAll("[data-book-machine]").forEach(button => button.addEventListener("click", () => {
+          state.selectedMachine = Number(button.dataset.bookMachine);
+          state.selectedSlot = "";
+          state.view = "booking";
+          render();
+        }));
+        document.querySelectorAll("[data-select-machine]").forEach(button => button.addEventListener("click", () => {
+          state.selectedMachine = Number(button.dataset.selectMachine);
+          state.selectedSlot = "";
+          render();
+        }));
+        document.querySelectorAll("[data-select-slot]").forEach(button => button.addEventListener("click", () => {
+          state.selectedSlot = button.dataset.selectSlot;
+          render();
+        }));
+        document.getElementById("booking-date")?.addEventListener("change", event => {
+          state.selectedDate = event.target.value;
+          state.selectedSlot = "";
+          render();
+        });
+        document.querySelector('[data-action="confirm-booking"]')?.addEventListener("click", confirmBooking);
+        document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
+          state.filter = button.dataset.filter;
+          render();
+        }));
+        document.querySelectorAll("[data-cancel]").forEach(button => button.addEventListener("click", () => cancelBooking(button.dataset.cancel)));
+        document.querySelectorAll("[data-machine-status]").forEach(select => select.addEventListener("change", () => {
+          const item = machine(select.dataset.machineStatus);
+          if (item) item.status = select.value;
+          save();
+          notify("Machine status updated in this browser.");
+          render();
+        }));
+        document.querySelector('[data-action="logout"]')?.addEventListener("click", () => {
+          state.profile = null;
+          save();
+          render();
+        });
+        document.getElementById("profile-form")?.addEventListener("submit", event => {
+          event.preventDefault();
+          const name = document.getElementById("edit-name").value.trim();
+          const room = document.getElementById("edit-room").value.trim();
+          if (name.length < 2 || !/^[\p{L}\p{N}-]{1,12}$/u.test(room)) {
+            document.getElementById("profile-error").textContent = "Enter a valid name and room number.";
+            return;
+          }
+          state.profile.name = name;
+          state.profile.room = room;
+          save();
+          notify("Profile saved.");
+          render();
+        });
+        document.querySelector('[data-action="pick-profile-photo"]')?.addEventListener("click", () => document.getElementById("profile-photo-file").click());
+        document.getElementById("profile-photo-file")?.addEventListener("change", async event => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          if (!file.type.startsWith("image/") || file.size > 2_500_000) {
+            document.getElementById("profile-error").textContent = "Choose an image smaller than 2.5 MB.";
+            return;
+          }
+          try {
+            state.profile.photo = await readPhoto(file);
+            save();
+            render();
+          } catch {
+            document.getElementById("profile-error").textContent = "Could not read the selected photo.";
+          }
+        });
+      }
+
+      function confirmBooking() {
+        const selectedSlot = slots.find(item => `${item[0]}-${item[1]}` === state.selectedSlot);
+        if (!selectedSlot) return notify("Choose an available time slot first.");
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(state.selectedDate)) return notify("Choose a valid booking date.");
+        if (state.selectedDate < localDate(0)) return notify("Choose today or a future date.");
+        if (state.selectedDate === localDate(0) && selectedSlot[0] <= `${String(new Date().getHours()).padStart(2,"0")}:${String(new Date().getMinutes()).padStart(2,"0")}`) return notify("That time has already passed.");
+        if (machine(state.selectedMachine)?.status === "Maintenance") return notify("That machine is under maintenance.");
+        if (hasConflict(state.selectedMachine,state.selectedDate,...selectedSlot)) return notify("That machine and time are already booked.");
+        const id = `LG-${Date.now().toString().slice(-7)}`;
+        state.bookings.unshift({
+          id, name: state.profile.name, room: state.profile.room, machineId: Number(state.selectedMachine),
+          date: state.selectedDate, start: selectedSlot[0], end: selectedSlot[1],
+          status: "Upcoming", amount: 149, createdAt: new Date().toISOString()
+        });
+        if (!save()) {
+          state.bookings.shift();
+          return;
+        }
+        state.view = "history";
+        state.filter = "All";
+        render();
+        notify(`Booking confirmed · ${id}`);
+      }
+
+      function cancelBooking(id) {
+        const booking = state.bookings.find(item => item.id === id);
+        if (!booking || booking.status !== "Upcoming") return;
+        if (!confirm(`Cancel booking ${id}? No payment was collected.`)) return;
+        booking.status = "Cancelled";
+        save();
+        render();
+        notify("Booking cancelled.");
+      }
+
+      window.addEventListener("storage", event => {
+        if (event.key !== APP_KEY) return;
+        state = loadState();
+        render();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
